@@ -1,6 +1,8 @@
+import asyncio
 import requests
 from urllib.parse import urljoin, urlparse
 import re
+import csv
 import json
 from bs4 import BeautifulSoup
 import time
@@ -15,10 +17,24 @@ class GDPRComplianceChecker:
         })
         self.results = {}
         
-    def check_website(self, url):
+    async def check_websites(self,urls):
+        sem = asyncio.Semaphore(10)
+        async def sem_task(url):
+            async with sem:
+                return await asyncio.to_thread(self._check_website, url)
+        tasks = [sem_task(url) for url in urls]
+        tsk_results = await asyncio.gather(*tasks)
+        for url,result in zip(urls,tsk_results):
+            self.results[url] =result
+        
+        return self.results
+
+
+    def _check_website(self, url):
         """主检测函数"""
         print(f"🔍 开始检测网站: {url}")
-        self.results = {'url': url}
+
+        result = {'url': url}
         
         try:
             # 标准化URL
@@ -28,32 +44,29 @@ class GDPRComplianceChecker:
             response = self.session.get(url, timeout=10, verify=False)
             response.raise_for_status()
             
-            self.results['status_code'] = response.status_code
-            self.results['content_type'] = response.headers.get('content-type', '')
+            result['status_code'] = response.status_code
+            # result['content_type'] = response.headers.get('content-type', '')
             
             # 执行各项检测
-            self._check_cookies(response)
-            self._check_privacy_policy(response, url)
-            self._check_third_party_scripts(response)
-            self._check_ssl_encryption(url)
-            self._analyze_content(response)
-            self._check_contact_info(response)
-            
-            # 生成合规评分
-            self._calculate_compliance_score()
+            self._check_cookies(response,result)
+            self._check_privacy_policy(response, url,result)
+            self._check_third_party_scripts(response,result)
+            # self._check_ssl_encryption(url,result)
+            # self._analyze_content(response,result)
             
         except requests.RequestException as e:
-            self.results['error'] = str(e)
+            result['error'] = str(e)
             print(f"❌ 请求错误: {e}")
             
-        return self.results
+        return result
     
-    def _check_cookies(self, response):
+    def _check_cookies(self, response, result):
         """检查Cookie使用情况"""
         print("🍪 分析Cookie使用...")
         cookie_analysis = {
             'cookies_found': [],
             'has_consent_banner': False,
+            'keywords_or_selectors_hit':[],
             'http_only_cookies': 0,
             'secure_cookies': 0,
             'session_cookies': 0,
@@ -92,7 +105,8 @@ class GDPRComplianceChecker:
         for keyword in cookie_keywords:
             if keyword in text_content:
                 cookie_analysis['has_consent_banner'] = True
-                break
+                cookie_analysis['keywords_or_selectors_hit'].append(keyword)
+                
                 
         # 检查常见的Cookie横幅选择器
         cookie_selectors = [
@@ -104,18 +118,15 @@ class GDPRComplianceChecker:
         for selector in cookie_selectors:
             if soup.select(selector):
                 cookie_analysis['has_consent_banner'] = True
-                break
+                cookie_analysis['keywords_or_selectors_hit'].append(selector)
                 
-        self.results['cookie_analysis'] = cookie_analysis
+                
+        result['cookie_analysis'] = cookie_analysis
     
-    def _check_privacy_policy(self, response, base_url):
+    def _check_privacy_policy(self, response, base_url, result):
         """检查隐私政策链接"""
         print("📄 查找隐私政策...")
-        privacy_analysis = {
-            'privacy_links_found': [],
-            'policy_accessible': False,
-            'policy_content': ''
-        }
+        privacy_possible_links = []
         
         soup = BeautifulSoup(response.text, 'html.parser')
         privacy_keywords = [
@@ -126,33 +137,17 @@ class GDPRComplianceChecker:
         # 在链接中查找隐私政策
         links = soup.find_all('a', href=True)
         for link in links:
-            link_text = link.get_text().lower()
-            link_href = link['href'].lower()
+            link_text = link.get_text(strip=True).lower()
+            link_href = str(link.get('href',default='')).lower()
             
             for keyword in privacy_keywords:
                 if keyword in link_text or keyword in link_href:
-                    privacy_analysis['privacy_links_found'].append({
-                        'text': link.get_text().strip(),
-                        'href': link['href']
-                    })
-                    break
-        
-        # 尝试访问第一个找到的隐私政策链接
-        if privacy_analysis['privacy_links_found']:
-            first_link = privacy_analysis['privacy_links_found'][0]['href']
-            try:
-                policy_url = urljoin(base_url, first_link)
-                policy_response = self.session.get(policy_url, timeout=5)
-                if policy_response.status_code == 200:
-                    privacy_analysis['policy_accessible'] = True
-                    policy_soup = BeautifulSoup(policy_response.text, 'html.parser')
-                    privacy_analysis['policy_content'] = policy_soup.get_text()[:500] + "..."
-            except:
-                pass
-                
-        self.results['privacy_analysis'] = privacy_analysis
+                    url = urljoin(base_url, str(link['href']))
+                    privacy_possible_links.append(url)
+                    break                
+        result['privacy_possible_links'] = privacy_possible_links
     
-    def _check_third_party_scripts(self, response):
+    def _check_third_party_scripts(self, response, result):
         """检查第三方脚本"""
         print("🔗 分析第三方服务...")
         third_party_analysis = {
@@ -177,7 +172,7 @@ class GDPRComplianceChecker:
         tracking_keywords = ['track', 'pixel', 'beacon', 'conversion']
         
         for script in scripts:
-            src = script['src']
+            src = str(script.get('src', ''))  # 确保是字符串
             domain = urlparse(src).netloc
             
             if domain and domain not in third_party_analysis['third_party_domains']:
@@ -192,19 +187,21 @@ class GDPRComplianceChecker:
             elif any(social in src_lower for social in ['facebook', 'twitter', 'linkedin', 'instagram']):
                 third_party_analysis['social_media_widgets'].append(src)
                 
-        self.results['third_party_analysis'] = third_party_analysis
+        result['third_party_analysis'] = third_party_analysis
     
-    def _check_ssl_encryption(self, url):
+    def _check_ssl_encryption(self, url, result):
         """检查SSL加密"""
+        
+        # 我们检查的是 Top 级网站，我们相信它们不会使用不可信的 SSL
         print("🔒 检查SSL加密...")
-        ssl_analysis = {'uses_https': False}
+        uses_https= False
         
         if url.startswith('https://'):
-            ssl_analysis['uses_https'] = True
+            uses_https = True
             
-        self.results['ssl_analysis'] = ssl_analysis
+        result['uses_https'] = uses_https
     
-    def _analyze_content(self, response):
+    def _analyze_content(self, response, result):
         """分析页面内容"""
         print("📊 分析页面内容...")
         content_analysis = {
@@ -244,189 +241,21 @@ class GDPRComplianceChecker:
         if any(word in text_content for word in ['用户权利', '数据主体权利', 'data subject rights']):
             content_analysis['user_rights_mentioned'] = True
             
-        self.results['content_analysis'] = content_analysis
+        result['content_analysis'] = content_analysis
     
-    def _check_contact_info(self, response):
-        """检查联系信息"""
-        print("📞 查找联系信息...")
-        contact_analysis = {
-            'email_found': False,
-            'phone_found': False,
-            'contact_form': False,
-            'dpo_mentioned': False
-        }
-        
-        soup = BeautifulSoup(response.text, 'html.parser')
-        text_content = soup.get_text()
-        
-        # 查找邮箱
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        if re.search(email_pattern, text_content):
-            contact_analysis['email_found'] = True
-        
-        # 查找电话
-        phone_pattern = r'(\+?\d{1,3}[-.\s]?)?\(?\d{1,4}\)?[-.\s]?\d{1,4}[-.\s]?\d{1,9}'
-        if re.search(phone_pattern, text_content):
-            contact_analysis['phone_found'] = True
-            
-        # 查找联系表单
-        form_selectors = ['form[action*="contact"]', 'form[id*="contact"]', 
-                         'form[class*="contact"]', '#contact-form']
-        for selector in form_selectors:
-            if soup.select(selector):
-                contact_analysis['contact_form'] = True
-                break
-                
-        # 检查数据保护官提及
-        dpo_keywords = ['数据保护官', 'DPO', 'Data Protection Officer']
-        if any(keyword in text_content for keyword in dpo_keywords):
-            contact_analysis['dpo_mentioned'] = True
-            
-        self.results['contact_analysis'] = contact_analysis
-    
-    def _calculate_compliance_score(self):
-        """计算合规评分"""
-        print("📈 计算合规评分...")
-        score = 0
-        max_score = 0
-        issues = []
-        recommendations = []
-        
-        # Cookie评分 (权重: 25%)
-        max_score += 25
-        cookie_analysis = self.results.get('cookie_analysis', {})
-        if cookie_analysis.get('has_consent_banner'):
-            score += 15
-        else:
-            issues.append("未发现明显的Cookie同意横幅")
-            recommendations.append("添加明确的Cookie同意管理解决方案")
-            
-        if cookie_analysis.get('secure_cookies', 0) > 0:
-            score += 10
-        else:
-            issues.append("未发现安全Cookie")
-            recommendations.append("为所有Cookie设置Secure标志")
-        
-        # 隐私政策评分 (权重: 25%)
-        max_score += 25
-        privacy_analysis = self.results.get('privacy_analysis', {})
-        if privacy_analysis.get('privacy_links_found'):
-            score += 15
-        else:
-            issues.append("未找到隐私政策链接")
-            recommendations.append("在网站显著位置添加隐私政策链接")
-            
-        if privacy_analysis.get('policy_accessible'):
-            score += 10
-        else:
-            issues.append("隐私政策页面可能无法访问")
-            recommendations.append("确保隐私政策链接有效")
-        
-        # 第三方服务评分 (权重: 20%)
-        max_score += 20
-        third_party = self.results.get('third_party_analysis', {})
-        if not third_party.get('tracking_scripts'):
-            score += 20
-        else:
-            score += 10
-            issues.append("检测到可能的追踪脚本")
-            recommendations.append("确保所有追踪脚本在获得用户同意后加载")
-        
-        # SSL加密评分 (权重: 10%)
-        max_score += 10
-        ssl_analysis = self.results.get('ssl_analysis', {})
-        if ssl_analysis.get('uses_https'):
-            score += 10
-        else:
-            issues.append("网站未使用HTTPS加密")
-            recommendations.append("启用SSL证书，使用HTTPS协议")
-        
-        # 内容评分 (权重: 10%)
-        max_score += 10
-        content_analysis = self.results.get('content_analysis', {})
-        if content_analysis.get('gdpr_keywords_found'):
-            score += 5
-        if content_analysis.get('user_rights_mentioned'):
-            score += 5
-        else:
-            issues.append("未提及用户数据权利")
-            recommendations.append("在隐私政策中明确说明用户的数据权利")
-        
-        # 联系信息评分 (权重: 10%)
-        max_score += 10
-        contact_analysis = self.results.get('contact_analysis', {})
-        if contact_analysis.get('email_found') or contact_analysis.get('contact_form'):
-            score += 10
-        else:
-            issues.append("缺少明确的联系方式")
-            recommendations.append("提供数据保护相关的联系方式")
-        
-        compliance_percentage = (score / max_score) * 100 if max_score > 0 else 0
-        
-        self.results['compliance_score'] = {
-            'percentage': round(compliance_percentage, 1),
-            'score': score,
-            'max_score': max_score,
-            'issues': issues,
-            'recommendations': recommendations,
-            'level': self._get_compliance_level(compliance_percentage)
-        }
-    
-    def _get_compliance_level(self, percentage):
-        """获取合规等级"""
-        if percentage >= 80:
-            return "良好"
-        elif percentage >= 60:
-            return "一般"
-        elif percentage >= 40:
-            return "较差"
-        else:
-            return "严重不足"
-    
-    def generate_report(self):
-        """生成检测报告"""
-        if 'error' in self.results:
-            print(f"❌ 检测失败: {self.results['error']}")
-            return
-        
-        score_info = self.results['compliance_score']
-        
-        print("\n" + "="*60)
-        print("📊 GDPR合规性检测报告")
-        print("="*60)
-        print(f"🌐 检测网站: {self.results['url']}")
-        print(f"🏆 合规评分: {score_info['percentage']}% ({score_info['level']})")
-        print(f"📊 得分: {score_info['score']}/{score_info['max_score']}")
-        
-        print("\n🔍 详细分析:")
-        print(f"  🍪 Cookie同意横幅: {'✅ 已发现' if self.results['cookie_analysis']['has_consent_banner'] else '❌ 未发现'}")
-        print(f"  📄 隐私政策: {'✅ 已找到' if self.results['privacy_analysis']['privacy_links_found'] else '❌ 未找到'}")
-        print(f"  🔒 SSL加密: {'✅ 使用HTTPS' if self.results['ssl_analysis']['uses_https'] else '❌ 使用HTTP'}")
-        print(f"  🔗 第三方服务: 发现 {len(self.results['third_party_analysis']['third_party_domains'])} 个第三方域名")
-        print(f"  📞 联系信息: {'✅ 已提供' if (self.results['contact_analysis']['email_found'] or self.results['contact_analysis']['contact_form']) else '❌ 未提供'}")
-        
-        if score_info['issues']:
-            print(f"\n⚠️  发现的问题:")
-            for issue in score_info['issues']:
-                print(f"   • {issue}")
-        
-        if score_info['recommendations']:
-            print(f"\n💡 改进建议:")
-            for recommendation in score_info['recommendations']:
-                print(f"   • {recommendation}")
-        
-        print("\n" + "="*60)
 
 def main():
-    """主函数"""
-    print("GDPR合规性自动检测工具")
-    print("请输入要检测的网站URL:")
+    input = "./top100.csv"
+    output = './result.json'
     
-    url = input().strip()
+    with open(input,'r') as f:
+        data = csv.reader(f)
+        urls = [url for _,url in data]
     
     checker = GDPRComplianceChecker()
-    results = checker.check_website(url)
-    checker.generate_report()
+    results =asyncio.run(checker.check_websites(urls))
+    with open(output,'w') as f:
+        json.dump(results,f)
 
 if __name__ == "__main__":
-    main()
+    _ =  main()
