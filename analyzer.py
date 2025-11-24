@@ -1,11 +1,13 @@
 import os
 import json
 import re
+from urllib import request, error
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from consts import (
     ANALYSIS_COOKIES_AGREE_PATH,
+    ANALYSIS_UNSURE_COOKIES_PATH,
     HALF_INTERACT_FILE_PATH,
     NOT_INTERACTIVE_FILE_PATH,
     OUTPUT_FILE_REJECT_PATH,
@@ -19,7 +21,7 @@ from consts import (
 )
 
 import utils
-from utils import _read_website_cookies, _write_json
+from utils import _read_website_cookies, _write_csv, _write_json
 from consts import websiteState, ADS_PATTERNS, ANALYTICS_PATTERNS, ANALYSIS_RESULT_PATH
 
 
@@ -105,24 +107,26 @@ def _check_is_thridparty(cookie: dict, top_level_url):
 
 def classify_cookie(cookie: dict, top_level_url):
     # this is a session cookie
-    expire = cookie.get("expire", -2)
+    expire = cookie.get("expires", -2)
     if expire <= 0:
         return False, "Session"
 
     # is_third_party = _check_is_thridparty(cookie, top_level_url)
 
     # check cookie name
-    name = cookie.get("name", "").lower()
+    Name = cookie.get("name", "")
+    name = Name.lower()
     for key in tracking_cookie_prefixes:
         if name.startswith(key.lower()):
             return True, f"Cookie hit at {key}"
 
+    # if len(Name)>50:
+    #     return False, "Long Name Not Found"
     return False, "Not Found"
 
 
 def classify_dom(dom):
     soup = BeautifulSoup(dom, "html.parser")
-
     urls = []
     reasons = []
     found_analytics = False
@@ -133,8 +137,8 @@ def classify_dom(dom):
         if src:
             urls.append(src)
         # inline script content
-        if tag.string:
-            urls.append(tag.string)
+        # if tag.string:
+        #     urls.append(tag.string)
 
     # images
     for tag in soup.find_all(["img", "iframe", "link"]):
@@ -145,16 +149,28 @@ def classify_dom(dom):
     urls = [u.lower() for u in urls]
 
     # 3. Pattern matching on collected items
-    for u in urls:
-        for p in ANALYTICS_PATTERNS:
-            if re.search(p, u):
+    for url in urls:
+        for pattern in ANALYTICS_PATTERNS:
+            match = re.search(
+                r".{0,50}" + re.escape(pattern) + r".{0,50}", url, re.IGNORECASE
+            )
+            if match:
+                match = match.group(0).split("?", 1)[0]
                 found_analytics = True
-                reasons.append(f"Analytics tracker detected: {p} in {u}")
+                reasons.append(f"Dom analysis hit at {pattern} in {url}")
+                print(f"Dom ad hit at {pattern}")
+                break
 
-        for p in ADS_PATTERNS:
-            if re.search(p, u):
+        for pattern in ADS_PATTERNS:
+            match = re.search(
+                r".{0,50}" + re.escape(pattern) + r".{0,50}", url, re.IGNORECASE
+            )
+            if match:
+                match = match.group(0).split("?", 1)[0]
                 found_ads = True
-                reasons.append(f"Advertising/pixel tracker detected: {p} in {u}")
+                reasons.append(f"Dom ad hit at {pattern} in {match}")
+                print(f"Dom ad hit at {pattern}")
+                break
 
     if found_ads or found_analytics:
         return True, reasons
@@ -162,23 +178,36 @@ def classify_dom(dom):
         return False, ["Not detected."]
 
 
-def analyze(result_noaction, result_reject, result_accept):
+def analyze(
+    result_noaction,
+    result_reject,
+    result_accept,
+    websites_unaccessible=None,
+    websites_not_interactive=None,
+    half_interact=None,
+):
     websites = utils.get_website_list()
 
     # analyze websites
     analyze_results = []
     only_agree_cookies = {}
+    unsure_cookies = []
     for website in websites:
         reasons = []
-        if website in websites_unaccessible:
+        if websites_unaccessible is not None and website in websites_unaccessible:
             reasons.append("unaccessible")
             analyze_results.append((website, None, reasons))
             continue
-        if website in websites_not_interactive:
+        if websites_not_interactive is not None and website in websites_not_interactive:
             reasons.append("not interactive")
             analyze_results.append((website, None, reasons))
             continue
+        if half_interact is not None and any(t[0] == website for t in half_interact):
+            reasons.append("half_interact")
+            analyze_results.append((website, None, reasons))
+            continue
 
+        # get cookies
         opt_noaction = result_noaction.get(website)
         opt_reject_cookies = result_reject.get(website)
         opt_agree = result_accept.get(website)
@@ -186,35 +215,53 @@ def analyze(result_noaction, result_reject, result_accept):
             reasons.append("no_action access unsuccessful")
             analyze_results.append((website, None, reasons))
             continue
-        if opt_reject_cookies is None:  # or opt_agree is None:
+        if opt_reject_cookies is None:
             reasons.append("reject_action access unsuccessful")
             analyze_results.append((website, None, reasons))
             continue
-
+        if opt_agree is None:
+            reasons.append("accept_action access unsuccessful")
+            analyze_results.append((website, None, reasons))
+            continue
         # -----------------
         # check NoAction State:如果没有操作就有AD，那么就是违规
+        has_least_one_hit = False
         for cookie in opt_noaction:
             result, reason = classify_cookie(cookie, website)
             if result is True:
                 reasons.append(reason)
+                has_least_one_hit = True
+            elif result == False and reason == "Not Found":
+                record = (cookie.get("name"), website)
+                if record not in unsure_cookies:
+                    unsure_cookies.append(record)
         # 检查 dom
-        dom = utils._read_doms(website, PHASE_NO_ACTION)
-        result, reason = classify_dom(dom)
-        if result is True:
-            reasons.append(reason)
+        # if has_least_one_hit == False:
+        #     dom = utils._read_doms(website, PHASE_NO_ACTION)
+        #     result, reason = classify_dom(dom)
+        #     if result is True:
+        #         reasons.append(reason)
 
         # -----------------
         # Reject State: 如果拒绝了依然加载，那么也是违规
         # check cookie
+        has_least_one_hit = False
         for cookie in opt_reject_cookies:
             result, reason = classify_cookie(cookie, website)
             if result is True:
                 reasons.append(reason)
+                has_least_one_hit = True
+            elif result == False and reason == "Not Found":
+                record = (cookie.get("name"), website)
+                if record not in unsure_cookies:
+                    unsure_cookies.append(record)
+
         # check dom
-        dom = utils._read_doms(website, PHASE_REJECT)
-        result, reason = classify_dom(dom)
-        if result is True:
-            reasons.append(reason)
+        # if has_least_one_hit == False:
+        #     dom = utils._read_doms(website, PHASE_REJECT)
+        #     result, reason = classify_dom(dom)
+        #     if result is True:
+        #         reasons.append(reason)
 
         if len(reasons) != 0:
             analyze_results.append((website, True, reasons))
@@ -228,7 +275,90 @@ def analyze(result_noaction, result_reject, result_accept):
             only_agree_cookies[website] = only_agree
 
     _write_json(only_agree_cookies, ANALYSIS_COOKIES_AGREE_PATH)
-    _write_json(analyze_results, ANALYSIS_RESULT_PATH)
+    # _write_json(analyze_results, ANALYSIS_RESULT_PATH)
+    _write_csv(analyze_results, ANALYSIS_RESULT_PATH)
+    _write_csv(unsure_cookies, ANALYSIS_UNSURE_COOKIES_PATH)
+
+
+def human_sup_analyze(result_noaction:dict, result_reject, result_accept):
+    # analyze websites
+    analyze_results = []
+    only_agree_cookies = {}
+    unsure_cookies = []
+    for [website,_] in result_noaction.items():
+        reasons = []
+        
+        # get cookies
+        opt_noaction = result_noaction.get(website)
+        opt_reject_cookies = result_reject.get(website)
+        opt_agree = result_accept.get(website)
+        if opt_noaction is None:
+            reasons.append("no_action access unsuccessful")
+            analyze_results.append((website, None, reasons))
+            continue
+        if opt_reject_cookies is None:
+            reasons.append("reject_action access unsuccessful")
+            analyze_results.append((website, None, reasons))
+            continue
+        if opt_agree is None:
+            reasons.append("accept_action access unsuccessful")
+            analyze_results.append((website, None, reasons))
+            continue
+        # -----------------
+        # check NoAction State:如果没有操作就有AD，那么就是违规
+        has_least_one_hit = False
+        for cookie in opt_noaction:
+            result, reason = classify_cookie(cookie, website)
+            if result is True:
+                reasons.append(reason)
+                has_least_one_hit = True
+            elif result == False and reason == "Not Found":
+                record = (cookie.get("name"), website)
+                if record not in unsure_cookies:
+                    unsure_cookies.append(record)
+        # 检查 dom
+        # if has_least_one_hit == False:
+        #     dom = utils._read_doms(website, PHASE_NO_ACTION)
+        #     result, reason = classify_dom(dom)
+        #     if result is True:
+        #         reasons.append(reason)
+
+        # -----------------
+        # Reject State: 如果拒绝了依然加载，那么也是违规
+        # check cookie
+        has_least_one_hit = False
+        for cookie in opt_reject_cookies:
+            result, reason = classify_cookie(cookie, website)
+            if result is True:
+                reasons.append(reason)
+                has_least_one_hit = True
+            elif result == False and reason == "Not Found":
+                record = (cookie.get("name"), website)
+                if record not in unsure_cookies:
+                    unsure_cookies.append(record)
+
+        # check dom
+        # if has_least_one_hit == False:
+        #     dom = utils._read_doms(website, PHASE_REJECT)
+        #     result, reason = classify_dom(dom)
+        #     if result is True:
+        #         reasons.append(reason)
+
+        if len(reasons) != 0:
+            analyze_results.append((website, True, reasons))
+        else:
+            analyze_results.append((website, False, reasons))
+
+        # -------------
+        # Agree Option: 没想好干什么，先记下多的cookie
+        only_agree, _, _ = _diff_two_cookie_list(opt_agree, opt_noaction)
+        if len(only_agree) != 0:
+            only_agree_cookies[website] = only_agree
+
+    _write_json(only_agree_cookies, ANALYSIS_COOKIES_AGREE_PATH)
+    # _write_json(analyze_results, ANALYSIS_RESULT_PATH)
+    _write_csv(analyze_results, ANALYSIS_RESULT_PATH)
+    _write_csv(unsure_cookies, ANALYSIS_UNSURE_COOKIES_PATH)
 
 
 def get_half_interacted_websites():
@@ -245,17 +375,26 @@ def get_half_interacted_websites():
                     result.append((url, res_re, res_ac))
     return result
 
-# get data
-(
-    result_noaction,
-    result_reject,
-    result_accept,
-    websites_unaccessible,
-    websites_not_interactive,
-) = utils.get_all_cookies_as_dict()
 
+# get data
+# (
+#     result_noaction,
+#     result_reject,
+#     result_accept,
+#     websites_unaccessible,
+#     websites_not_interactive,
+# ) = utils.get_all_cookies_as_dict()
+
+result_noaction, result_reject, result_accept = (
+    utils.get_cookies_as_dict_from_human_collect()
+)
+
+
+# half_interact = get_half_interacted_websites()
+# _write_json(half_interact, HALF_INTERACT_FILE_PATH)
+human_sup_analyze(result_noaction, result_reject, result_accept)
 # analyze(result_noaction, result_reject, result_accept)
-half_interact =get_half_interacted_websites()
-_write_json(half_interact,HALF_INTERACT_FILE_PATH)
-_write_json(websites_unaccessible, UNACCESSIBLE_FILE_PATH)
-_write_json(websites_not_interactive, NOT_INTERACTIVE_FILE_PATH)
+
+
+# _write_json(websites_unaccessible, UNACCESSIBLE_FILE_PATH)
+# _write_json(websites_not_interactive, NOT_INTERACTIVE_FILE_PATH)

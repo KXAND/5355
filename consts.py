@@ -13,6 +13,7 @@ INPUT_FILE = Path(ABSOLUTE_PATH_ROOT, "top100.csv")
 INPUT_FILE_ABS = INPUT_FILE
 
 ANALYSIS_RESULT_PATH = ANALYSIS_DIR.joinpath("analysis.json")
+ANALYSIS_UNSURE_COOKIES_PATH = ANALYSIS_DIR.joinpath("cookie_query.database")
 ANALYSIS_COOKIES_AGREE_PATH = ANALYSIS_DIR.joinpath("only_agrees_cookies.json")
 ERR_LOG = ABSOLUTE_PATH_ROOT.joinpath("err.log")
 
@@ -26,7 +27,8 @@ OUTPUT_FILE_NO_AND_RE_PATH = ANALYSIS_DIR.joinpath("cookie_both_in_phases.json")
 UNACCESSIBLE_FILE_PATH = ANALYSIS_DIR.joinpath("websites_unaccessible.json")
 NOT_INTERACTIVE_FILE_PATH = ANALYSIS_DIR.joinpath("websites_not_interactive.json")
 HALF_INTERACT_FILE_PATH = ANALYSIS_DIR.joinpath("haf_interactive.json")
-
+SUPPLEMENTARY_FILE_PATH = ANALYSIS_DIR.joinpath("supplementary.json")
+HUMAN_COLLECT_FILE_PATH = ABSOLUTE_PATH_ROOT.joinpath("input/human_collect.csv")
 
 # using startwith parsing
 tracking_cookie_prefixes = [
@@ -91,6 +93,7 @@ class websiteState(Enum):
     UNACCSSIBLE = (-1,)
     ACCSSIBLE = (0,)
     INTERACT_FAILED = (1,)
+    INTERACT_HALF_FAILED = (4,)
     GDPR_COMPLIANT = (2,)
     GDPR_NON_COMPLIANT = (3,)
 
@@ -171,6 +174,35 @@ ACCEPT_BUTTON_KEYWORDS = [
     "ok",
     "d'accord",
     "c'est bon",
+    # Germany
+    "akzeptieren",
+    "alle akzeptieren",
+    "alle cookies akzeptieren",
+    "zustimmen",
+    "ja, ich stimme zu",
+    "ich stimme zu",
+    "ich akzeptiere",
+    "einverstanden",
+    "ok",
+    "okay",
+    "verstanden",
+    "fortfahren",
+    "weiter",
+    "cookies zulassen",
+    "alle zulassen",
+    "alle cookies zulassen",
+    "zulassen",
+    "zustimmen und fortfahren",
+    "zustimmen und weiter",
+    "zustimmen und fortsetzen",
+    "cookie-nutzung zustimmen",
+    "nicht notwendige cookies akzeptieren",
+    "optionale cookies akzeptieren",
+    "analyse-cookies akzeptieren",
+    "marketing-cookies akzeptieren",
+    "mit cookies fortfahren",
+    "einwilligen",
+    "einwilligung geben",
     # Chinese
     "接受",
     "全部接受",
@@ -207,13 +239,13 @@ REJECT_BUTTON_KEYWORDS = [
     "deny all",
     "opt out",
     "opt-out",
+    "accept only essential cookies",
     "only necessary",
+    "only essential cookies",
     "necessary only",
     "strictly necessary only",
     "use necessary cookies only",
     "essential cookies only",
-    "only essential cookies",
-    "accept only essential cookies",
     "I do not agree",
     "I do not accept",
     # French
@@ -232,6 +264,26 @@ REJECT_BUTTON_KEYWORDS = [
     "désactiver tous les cookies",
     "enregistrer les parametres",
     "Enregistrer les paramètres"
+    # Germany
+    "ablehnen",
+    "alles ablehnen",
+    "alle ablehnen",
+    "alle Cookies ablehnen",
+    "nicht notwendige ablehnen",
+    "nur notwendige Cookies",
+    "nur notwendige Cookies verwenden",
+    "nur erforderliche Cookies",
+    "nur essentielle Cookies",
+    "nur notwendige",
+    "Strikt notwendige Cookies",
+    "nur strikt notwendige Cookies",
+    "Cookies deaktivieren",
+    "alles deaktivieren",
+    "alle Cookies deaktivieren",
+    "ich stimme nicht zu",
+    "ich akzeptiere nicht",
+    "Opt-out",
+    "opt out"
     # Chinese
     "拒绝",
     "全部拒绝",

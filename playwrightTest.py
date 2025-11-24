@@ -29,6 +29,7 @@ from consts import (
     PHASE_ACCEPT,
     PHASE_NO_ACTION,
 )
+import consts
 
 # --- 配置 ---
 CONCURRENCY = 15
@@ -82,30 +83,29 @@ async def error_logger():
             error_queue.task_done()
 
 
-
 # --- Main capture logic for one URL ---
 async def capture_for_url(browser, url, semaphore: Semaphore, idx):
     print(f"🚦 任务 {idx} 开始，URL: {url}, 信号量值: {semaphore._value}")
     async with semaphore:
         print(f"    任务 {idx} 获得信号量 {semaphore._value}")
         # no_action Phase
-        await capture_once_for_url(idx,url, browser, PHASE_NO_ACTION)
+        await capture_once_for_url(idx, url, browser, PHASE_NO_ACTION)
         print(f"    任务 {idx} Phase 1 结束")
         # reject_action phase
-        await capture_once_for_url(idx,url, browser, PHASE_REJECT, click_cookie_banner)
+        await capture_once_for_url(idx, url, browser, PHASE_REJECT, click_cookie_banner)
         print(f"    任务 {idx} Phase 2 结束")
         # accept_action phase
-        await capture_once_for_url(idx,url, browser, PHASE_ACCEPT, click_cookie_banner)
+        await capture_once_for_url(idx, url, browser, PHASE_ACCEPT, click_cookie_banner)
         print(f"    任务 {idx} Phase 3结束")
         print(f"{idx} : {url} Finished now.\n")
 
 
-async def click_cookie_banner(page,is_accept):
+async def click_cookie_banner(page, is_accept):
     """尝试点击 cookie 同意或拒绝按钮"""
     clicked = False
 
     #  在主文档中查找
-    clicked = await try_click_in_frame(page,is_accept)
+    clicked = await try_click_in_frame(page, is_accept)
     if clicked:
         return True
 
@@ -115,7 +115,7 @@ async def click_cookie_banner(page,is_accept):
         if not frame.url or frame.url.startswith("about:"):
             continue
         try:
-            clicked = await try_click_in_frame(frame,is_accept)
+            clicked = await try_click_in_frame(frame, is_accept)
             if clicked:
                 return True
         except Exception:
@@ -130,7 +130,9 @@ async def click_cookie_banner(page,is_accept):
             btn = await c.query_selector("button, a, input[type='button']")
             if btn:
                 try:
-                    print(f"[info] URL: {page.url},phase:{is_accept}: try_click_in_containers")
+                    print(
+                        f"[info] URL: {page.url},phase:{is_accept}: try_click_in_containers"
+                    )
                     await btn.click(timeout=3000)
                     return True
                 except Exception:
@@ -140,6 +142,7 @@ async def click_cookie_banner(page,is_accept):
 
     return False
 
+
 async def try_click_in_frame(frame, is_accept):
     """在单个 frame 中尝试点击含关键字的按钮"""
     print(f"[info] URL: {frame.url},phase:{is_accept}: try_click_in_frame")
@@ -147,13 +150,18 @@ async def try_click_in_frame(frame, is_accept):
         keywords = ACCEPT_BUTTON_KEYWORDS
     else:
         keywords = REJECT_BUTTON_KEYWORDS
+
+    keywords = [keyword.lower() for keyword in keywords]
+
     for keyword in keywords:
         try:
+            #  :has-text() matching is case-insensitive, trims whitespace and searches for a substring.
             btns = await frame.query_selector_all(f'button:has-text("{keyword}")')
             if not btns:
                 btns = await frame.query_selector_all(
                     f'a:has-text("{keyword}"), input[type="button"][value*="{keyword}"]'
                 )
+
             for b in btns:
                 try:
                     await b.click(timeout=CLICK_TIMEOUT)
@@ -167,7 +175,8 @@ async def try_click_in_frame(frame, is_accept):
     return False
 
 
-async def capture_once_for_url(idx,url, browser, phase, func=None):
+async def capture_once_for_url(idx, url, browser, phase, func=None):
+    # initials
     context = await browser.new_context(
         # har record may cause context.close() uncecessful
         # record_har_path=str(OUTPUT_DIR / get_safe_name(url) / phase / "har.har"),
@@ -179,6 +188,8 @@ async def capture_once_for_url(idx,url, browser, phase, func=None):
     outdir = OUTPUT_DIR / get_safe_name(url) / phase
     outdir.mkdir(parents=True, exist_ok=True)
     print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: page, context created")
+
+    # load
     try:
         await page.goto(url, wait_until="domcontentloaded", timeout=LOAD_PAGE_TIMEOUT)
         await asyncio.sleep(LOAD_CONSENT_TIMEOUT)  # wait for loading cookie consent
@@ -189,22 +200,15 @@ async def capture_once_for_url(idx,url, browser, phase, func=None):
         await context.close()
         return
 
-    interact_result = None
-    if func is not None:
-        if phase == PHASE_REJECT:
-            interact_result = await func(page, False)
-        elif phase == PHASE_ACCEPT:
-            interact_result = await func(page, True)
-    print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: function interacted")
+    # Save screenshot, DOM, cookies, HAR
     try:
-        # Save screenshot, DOM, cookies, HAR already recorded by context
         await page.screenshot(path=str(outdir / "screenshot.png"), full_page=True)
         print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: screenshoted")
-        
+
         dom = await page.content()
         await write_text(outdir / "dom.html", dom)
         print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: domed")
-        
+
         cookies = await context.cookies()
         await write_json(outdir / "cookies.json", cookies)
         print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: cookie jsoned")
@@ -214,6 +218,16 @@ async def capture_once_for_url(idx,url, browser, phase, func=None):
         await context.close()
         return
 
+    # interact
+    interact_result = None
+    if func is not None:
+        if phase == PHASE_REJECT:
+            interact_result = await func(page, False)
+        elif phase == PHASE_ACCEPT:
+            interact_result = await func(page, True)
+    print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: function interacted")
+
+    # matadata
     meta_filepath = OUTPUT_DIR / get_safe_name(url) / "metadata.json"
     try:
         metadata = json.loads((meta_filepath).read_text(encoding="utf-8"))
@@ -228,6 +242,7 @@ async def capture_once_for_url(idx,url, browser, phase, func=None):
         phase_metadata["interact_result"] = interact_result
     metadata[phase] = phase_metadata
 
+    # output & close
     await write_json(meta_filepath, metadata)
     print(f"[info] 任务 {idx}  URL: {url},phase:{phase}: metadata wrote to json")
     # CLOSE before-phase context
@@ -251,7 +266,7 @@ async def main(urls):
         await browser.close()
 
 
-if __name__ == "__main__":
+def fully_load():
     urls = []
     with open(INPUT_FILE, "r", encoding="utf-8") as f:
         data = csv.reader(f, delimiter=",")
@@ -259,4 +274,37 @@ if __name__ == "__main__":
             s = url.strip()
             if s:
                 urls.append([idx, s] if s.startswith("http") else [idx, "https://" + s])
-    asyncio.run(main(urls))
+    return urls
+
+
+def half_interactive_load(file=consts.HALF_INTERACT_FILE_PATH):
+    urls = []
+    with open(file, "r", encoding="utf-8") as f:
+        idx = 0
+        data = json.load(f)
+        for [url, _, _] in data:
+            s = url.strip()
+            if s:
+                urls.append([idx, s] if s.startswith("http") else [idx, "https://" + s])
+            idx += 1
+    return urls
+
+
+def supplementary_load():
+    urls = []
+    with open(consts.SUPPLEMENTARY_FILE_PATH, "r", encoding="utf-8") as f:
+        idx = 0
+        data = json.load(f)
+        for url in data:
+            s = url.strip()
+            if s:
+                urls.append([idx, s] if s.startswith("http") else [idx, "https://" + s])
+            idx += 1
+    return urls
+
+
+# -----main-----
+# urls = fully_load()
+# urls = half_interactive()
+urls = supplementary_load()
+asyncio.run(main(urls))
