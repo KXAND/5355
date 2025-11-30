@@ -1,0 +1,129 @@
+﻿domains,GDPR Complaint,Cookie Usage Properly,Banner State,comments,evidence,privacy urls,is Russian or .gov
+http://mail.ru,,False,Accept Easier,,['half_interact'],https://help.mail.ru/legal/terms/common/privacy/,1
+http://microsoft.com,1,True,Normal,,['Cookie hit at mbox'],https://www.microsoft.com/zh-cn/privacy/privacystatement,
+http://facebook.com,1,False,No Banner,,['fr'，'sb'],"cookie:https://mbasic.facebook.com/privacy/policies/cookies/printable/#1
+privacy: https://mbasic.facebook.com/privacy/policy/printable/",
+http://cloudflare.com,1,True,Normal,,[],https://www.cloudflare.com/zh-cn/privacypolicy/,
+http://yandex.ru,,False,No Banner,dzen.ru,['not interactive'],"https://dzen.ru/legal/ru/confidential/index.html
+",1
+http://youtube.com,1,True,Normal,,[],https://policies.google.com/privacy,
+http://apple.com,1,False,No Banner,,"['s_cc',s_vi] Adobe Analytics ",https://www.apple.com/legal/privacy/en-ww/,
+http://instagram.com,1,False,No Banner,,['fr'，'sb'],"https://mbasic.facebook.com/privacy/policy/printable/#7
+cookie: https://mbasic.facebook.com/privacy/policies/cookies/printable/",
+http://office.com,1,True,Normal,,[],https://www.microsoft.com/zh-cn/privacy/privacystatement,
+http://x.com,1,False,Normal,,"['Cookie hit at guest_id', 'Cookie hit at guest_id']",https://x.com/en/privacy,
+http://live.com,1,True,Normal,,[],https://www.microsoft.com/zh-cn/privacy/privacystatement,
+http://linkedin.com,1,False,Normal,,"['Cookie hit at bscookie', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at bscookie', 'Cookie hit at li_gc', 'Cookie hit at lidc']","https://www.linkedin.com/legal/privacy-policy
+EU补充条款 https://www.linkedin.com/legal/privacy/eu",
+http://bing.com,1,False,Normal,,"['Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID', 'Cookie hit at MUID']",https://www.microsoft.com/zh-cn/privacy/privacystatement,
+http://github.com,1,True,No Banner,存在manage cookies，默认不勾选,['half_interact'],https://docs.github.com/site-policy/privacy-policies/github-privacy-statement ,
+http://whatsapp.com,1,True,No Banner,,['not interactive'],"terms of service:https://www.whatsapp.com/legal/terms-of-service-eea
+privacy:https://www.whatsapp.com/legal/privacy-policy-eea
+cookies:https://www.whatsapp.com/legal/cookies",
+http://fastly.com,1,False,Normal,,"['Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _ga']","https://fastly.com/privacy/ 
+cookies：https://www.fastly.com/cookies",
+http://netflix.com,1,True,Normal,,[],https://help.netflix.com/legal/privacy ,
+http://wordpress.org,1,False,Normal,有_ga,['half_interact'],https://wordpress.org/about/privacy/ ,
+http://digicert.com,1,False,No Banner,,['_gcl_au'，'s_cc'],https://www.digicert.com/privacy-center ,
+http://icloud.com,1,False,No Banner,,"['s_cc',s_vi] Adobe Analytics ",https://www.apple.com/legal/privacy/en-ww/,
+http://pinterest.com,1,False,No Banner,,['_pinterest_sess'] Functional,https://policy.pinterest.com/en/privacy-policy,
+http://google.com,1,True,Normal,,[],https://www.gstatic.com/policies/privacy/pdf/20250701/au717dgi/google_privacy_policy_en.pdf  https://policies.google.com/technologies/cookies?jsmode=dfo,
+http://nic.ru,,False,No Banner,仅存在使用cookie提示,['half_interact'],https://www.nic.ru/help/politika-ispol6zovaniya-cookie-fajlov_889.html,1
+http://ntp.org,,False,No Banner,,['ga'],https://www.nwtime.org/privacy-policy/,1
+http://roblox.com,1,True,Normal,,[],https://vimeo.com/legal/privacy/policy,
+http://vimeo.com,1,False,No Banner,,['vuid'] Preferences,https://vimeo.com/legal/privacy/policy,
+http://spotify.com,1,False,Normal,,"['Cookie hit at sp_', 'Cookie hit at sp_', 'Cookie hit at sp_', 'Cookie hit at sp_']",https://www.spotify.com/is-en/legal/privacy-policy/,
+http://bitly.com,1,True,Accept Easier,,['half_interact'],https://bitly.com/pages/privacy ,
+http://zoom.com,1,True,Normal,,[],https://www.opera.com/zh-cn/legal/cookie-policy,
+http://ya.ru,,False,No Banner,,['not interactive'],https://yandex.ru/legal/confidential/ru,1
+http://opera.com,1,True,Normal,尽管这个网站只有“接受”和接受所有，但是可以直接看到“非必要”被关闭，因此拒绝（即“接受”）和接受一样容易,[],https://www.opera.com/zh-cn/legal/cookie-policy,
+http://wordpress.com,1,True,Accept Easier,,[],https://automattic.com/privacy/,
+http://baidu.com,,,Not Suitable,无法访问,['unaccessible'],https://privacy.baidu.com/policy.html,
+http://one.one,1,True,Normal,,[],https://www.one.com/en/legal/privacy,
+http://domains.google,1,True,No Cookie,无cookie,['not interactive'],https://www.google.com/policies/privacy/ ,
+http://nginx.org,1,True,No Cookie,"无cookie, no data collection",['half_interact'],-,
+http://mozilla.org,1,True,No Cookie,无cookie,['not interactive'],https://support.mozilla.org/zh-CN/kb/information-eu-eea-swiss-and-california-users?redirectslug=information-eu-eea-and-swiss-users&redirectlocale=en-US,
+http://f5.com,1,False,Normal,,"['Cookie hit at AMCV_', 'Cookie hit at AMCV_']",https://www.f5.com.cn/company/policies/privacy-notice,
+http://ui.com,1,False,Normal,,"['Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _hjSession_', 'Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _hjSession_']",https://www.ui.com/legal/privacypolicy/,
+http://vk.com,,False,No Banner,,"['_ga','_ym']",https://vk.com/privacy,1
+http://europa.eu,1,False,Normal,,"['Cookie hit at _pk_id', 'Cookie hit at _pk_ses', 'Cookie hit at _pk_id', 'Cookie hit at _pk_ses']",https://commission.europa.eu/privacy-policy-websites-managed-european-commission_en,
+http://criteo.com,1,True,Normal,,[],https://www.criteo.com/privacy/corporate-privacy-policy/,
+http://intuit.com,1,True,Normal,,[''],https://www.intuit.com/privacy/,
+http://dns.google,1,True,No Cookie,无cookie,['not interactive'],---,
+http://apache.org,1,True,No Cookie,,['not interactive'],https://privacy.apache.org/policies/privacy-policy-public.html,
+http://adriver.ru,1,False,No Banner,,['not interactive'],https://www.adriver.ru/about/privacy-en/,1
+http://gravatar.com,1,False,Accept Easier,默认勾选同意Analytics,"[tk_ai,tk_qs]",https://automattic.com/cookies/,
+http://dropbox.com,1,True,Normal,,[''],https://dropbox.com/terms ,
+http://paypal.com,1,False,Accept Easier,,[LANG],https://www.paypal.com/c2/legalhub/paypal/cookie-full,
+http://mi.com,1,True,Normal,,[''],https://www.mi.com/uk/support/policy/privacy/,
+http://tumblr.com,1,False,Accept Easier,这个网站拒绝在二级菜单。但是timezone为上海所以无法判断，认定为True,[tz],https://tumblr.com/policy/privacy ,
+http://nist.gov,,False,No Banner,,['ga'],https://www.nist.gov/privacy,1
+http://discord.com,1,True,Normal,法国节点不显示，德国节点显示,[],https://discord.com/privacy,
+http://archive.org,,False,No Banner,未经用户同意对用户进行AB测试以及记录用户是否看到了捐赠信息,"['abtest-identifier','donation-identifier']",https://archive.org/about/terms,
+http://nih.gov,,False,No Banner,,['ga'],https://nih.gov/privacy-policy ,1
+http://pki.goog,1,False,Normal,,"['Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _gid', 'Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _ga']",https://policies.google.com/privacy ,
+http://cloud.microsoft,1,True,Normal,,[],https://www.microsoft.com/zh-cn/privacy/privacystatement,
+http://nytimes.com,1,True,Normal,,[],https://www.nytimes.com/privacy/cookie-policy,
+http://kaspersky.com,1,False,Normal,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://www.kaspersky.com/web-privacy-policy ,
+http://bunny.net,1,False,Normal,,"['Cookie hit at _pk_id', 'Cookie hit at _pk_ses', 'Cookie hit at _pk_id', 'Cookie hit at _pk_ses']",https://bunny.net/gdpr/,
+http://reg.ru,,False,No Banner,仅存在使用cookie提示,['half_interact'],https://img.reg.ru/faq/politika_konfidencyalnosti_221025.pdf,1
+http://flickr.com,1,True,Normal,边界情况。尽管它提供了接受全部和拒绝全部的情景，但是默认勾选了广告cookie,[],https://www.flickr.com/help/privacy ,
+http://shopify.com,1,True,Normal,,[],https://www.shopify.com/legal/cookies,
+http://miui.com,1,True,No Cookie,,['half_interact'],https://privacy.mi.com/all/zh_CN/,
+http://medium.com,0,False,No Banner,仅存在使用cookie提示,['uid'],https://policy.medium.com/medium-privacy-policy-f03bf92035c9,
+http://taboola.com,1,True,Normal,,[''],https://policies.taboola.com/privacy-policy/#regional-privacy-rights,
+http://soundcloud.com,1,True,Normal,,[],https://soundcloud.com/pages/privacy,
+http://adobe.com,1,False,Normal,,"['Cookie hit at AMCV_', 'Cookie hit at mbox', 'Cookie hit at mbox', 'Cookie hit at mbox', 'Cookie hit at mbox']",https://www.adobe.com/privacy.html,
+http://indexexchange.com,1,True,Normal,,['unaccessible'],https://www.indexexchange.com/privacy/website-corporate-cookie-notice/,
+http://cnn.com,1,True,Normal,,[''],https://www.wbdprivacy.com/policycenter/b2c/en-emea/,
+http://w3.org,1,True,No Cookie,没有banner，没有多余cookie,[''],https://www.w3.org/mission/privacy/ ,
+http://pubmatic.com,1,True,Normal,,[],https://pubmatic.com/legal/properties-privacy-policy/,
+http://android.com,1,False,Normal,banner没有选项,"['Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _gid', 'Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _gid']",https://policies.google.com/technologies/cookies?hl=en,
+http://t.co,1,True,No Cookie,,['not interactive'],https://help.x.com/en/rules-and-policies/x-cookies,
+http://salesforce.com,1,True,Normal,,[''],https://www.salesforce.com/company/legal/privacy/,
+http://doubleverify.com,1,False,Normal,,"['Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at __hstc', 'Cookie hit at hubspotutk', 'Cookie hit at __hssc']",https://doubleverify.com/privacy-notice ,
+http://forbes.com,1,True,Normal,,[],https://www.forbes.com/privacy/english/,
+http://myfritz.net,1,True,No Banner,,['not interactive'],https://fritzhelp.avm.de/help/privacy/en,
+http://mts.ru,,False,No Banner,,"['Cookie hit at _ga', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ga']",https://moskva.mts.ru/personal/cookie,1
+http://creativecommons.org,1,True,No Banner,,['not interactive'],https://creativecommons.org/privacy ,
+http://example.com,1,True,No Cookie,,['not interactive'],https://www.icann.org/en/data-protection/privacy-policy,
+http://twitch.tv,1,True,Normal,,[''],https://legal.twitch.com/legal/privacy-notice/,
+http://bbc.com,1,True,Normal,,[],https://www.bbc.com/pages/privacy-policy ,
+http://sourceforge.net,1,True,Normal,,[],https://slashdotmedia.com/privacy-statement/,
+http://bbc.co.uk,,,Not Suitable,301,['unaccessible'],https://www.bbc.com/usingthebbc/privacy ,
+http://webex.com,1,True,Normal,,['not interactive'],https://www.cisco.com/c/en/us/about/legal/privacy-full.html https://webex.com#privacy-manager ,
+http://cpanel.net,1,False,Normal,,"['Cookie hit at _hjSession_', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at _fbp', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at _hjSession_', 'Cookie hit at _fbp']",https://www.cpanel.net/privacy-policy/ ,
+http://netangels.ru,,False,Normal,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://www.netangels.ru/oferta/personal_data_cookies.pdf,1
+http://weather.com,1,True,Normal,,[],https://weather.com/zh-CN/intl-privacy ,
+http://roku.com,,False,Normal,,"['Cookie hit at _gcl_', 'Cookie hit at _gcl_']",https://docs.roku.com/published/userprivacypolicy/en/us,
+http://ebay.com,1,False,Normal,,"['Cookie hit at _gcl_', 'Cookie hit at _fbp']",https://static.ebayinc.com/assets/Uploads/PrivacyCenter/ebay-corporate-rules-english.pdf,
+http://mit.edu,1,True,No Banner,,['not interactive'],https://mit.edu/privacy ,
+http://adsrvr.org,1,True,No Cookie,,['unaccessible'],https://www.thetradedesk.com/general/privacy ,
+http://ubuntu.com,1,True,Accept Easier,,['unaccessible'],https://canonical.com/legal/data-privacy?cp=hide#cookies,
+http://cisco.com,1,True,Normal,,[],https://www.cisco.com/c/en/us/about/legal/privacy-full.html ,
+http://doi.org,1,True,No Cookie,,['unaccessible'],https://doi.org/privacy-policy/ ,
+http://blog.google,1,False,Normal,,"['Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _ga', 'Cookie hit at _ga']",https://policies.google.com/privacy,
+http://hubspot.com,1,True,Normal,,[],https://legal.hubspot.com/privacy-policy ,
+http://linktr.ee,1,True,No Banner,,[],https://linktr.ee/s/privacy,
+http://mikrotik.com,1,True,No Cookie,,['half_interact'],https://mikrotik.com/privacy ,
+http://dell.com,1,False,Normal,,,https://www.dell.com/en-ie/lp/legal/policies-cookies-ads-emails,
+http://drom.ru,,False,No Banner,,['not interactive'],https://www.drom.ru/about/reprint/,1
+http://hp.com,1,False,Normal,只有在拒绝后才会取消cookie,[''_uetsid],https://www.hp.com/ie-en/privacy/privacy.html,
+http://who.int,0,False,No Banner,,['_ga'],https://who.int/about/policies/privacy ,
+http://tinyurl.com,1,True,Normal,,[],https://tinyurl.com/app/cookies-policy,
+http://dropcatch.com,1,False,No Banner,,['ga'],https://www.dropcatch.com/legal/privacy,
+http://moe.video,,False,Normal,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://moe.video/privacy-policy,1
+http://launchpad.net,1,True,No Cookie,,['half_interact'],https://www.ubuntu.com/legal/dataprivacy ,
+http://inmobi.com,1,False,Normal,,"['Cookie hit at _hjSession_', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at _hjSession_']",https://www.inmobi.com/website-cookie-policy,
+http://launchdarkly.com,1,False,Normal,,"['Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at guest_id', 'Cookie hit at guest_id', 'Cookie hit at personalization_id', 'Cookie hit at guest_id', 'Cookie hit at li_gc', 'Cookie hit at lidc', 'Cookie hit at guest_id', 'Cookie hit at guest_id', 'Cookie hit at personalization_id', 'Cookie hit at guest_id']",https://launchdarkly.com/policies/privacy/,
+http://grammarly.com,1,False,Normal,,['__ps_slu'__ps_did],https://www.grammarly.com/privacy-policy,
+http://harvard.edu,,False,No Banner,,['ga'],https://www.harvard.edu/privacy-statement/ ,
+http://stripe.com,1,True,Normal,,[],https://stripe.com/en-hk/privacy ,
+http://slack.com,1,False,Normal,,[__Secure-ROLLOUT_TOKEN],https://slack.com/trust/privacy/privacy-policy ,
+http://avast.com,1,False,Normal,,"['Cookie hit at mbox', 'Cookie hit at AMCV_', 'Cookie hit at mbox', 'Cookie hit at AMCV_']",https://www.avast.com/cookies-policy,
+http://nota.media,,False,No Banner,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://nota.media/rules/,1
+http://ivi.ru,,False,No Banner,banner只能同意,['ym'],https://www.ivi.tv/info/confidential,1
+http://ok.ru,1,True,Accept Easier,"如果`isgdpr=1`,那么合规，但是隐身模式不会判断你在gdpr，那么会用",[''],https://ok.ru/cookiepolicy,1
+http://sberbank.ru,,False,Normal,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://www.sberbank.ru/privacy/cookies,1
+http://consultant.ru,,False,Normal,,"['Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_', 'Cookie hit at _ym_']",https://www.consultant.ru/cookies/policy/,1
+http://ibm.com,1,False,Normal,,['AMCV'，'ga'],https://www.ibm.com/us-en/privacy,0

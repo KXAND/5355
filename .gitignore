@@ -10,3 +10,8 @@ __pycache__/*
 *.test
 playwrightTest.py
 err.log
+
+# submission
+submission/*
+# references
+references/

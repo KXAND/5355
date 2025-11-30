@@ -377,23 +377,23 @@ def get_half_interacted_websites():
 
 
 # get data
-# (
-#     result_noaction,
-#     result_reject,
-#     result_accept,
-#     websites_unaccessible,
-#     websites_not_interactive,
-# ) = utils.get_all_cookies_as_dict()
+(
+    result_noaction,
+    result_reject,
+    result_accept,
+    websites_unaccessible,
+    websites_not_interactive,
+) = utils.get_all_cookies_as_dict()
 
-result_noaction, result_reject, result_accept = (
-    utils.get_cookies_as_dict_from_human_collect()
-)
+# result_noaction, result_reject, result_accept = (
+#     utils.get_cookies_as_dict_from_human_collect()
+# )
 
 
-# half_interact = get_half_interacted_websites()
-# _write_json(half_interact, HALF_INTERACT_FILE_PATH)
-human_sup_analyze(result_noaction, result_reject, result_accept)
-# analyze(result_noaction, result_reject, result_accept)
+half_interact = get_half_interacted_websites()
+_write_json(half_interact, HALF_INTERACT_FILE_PATH)
+# human_sup_analyze(result_noaction, result_reject, result_accept)
+analyze(result_noaction, result_reject, result_accept)
 
 
 # _write_json(websites_unaccessible, UNACCESSIBLE_FILE_PATH)
